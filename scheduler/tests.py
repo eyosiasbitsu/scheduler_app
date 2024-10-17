@@ -8,7 +8,6 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from .serializers import ScheduleSerializer
 
 
-# Helper function to create JWT tokens
 def get_tokens_for_user(user):
     refresh = RefreshToken.for_user(user)
     return {
@@ -16,12 +15,13 @@ def get_tokens_for_user(user):
         'access': str(refresh.access_token),
     }
 
-
 class ScheduleAPITestCase(TestCase):
     def setUp(self):
         self.client = APIClient()
         self.user = User.objects.create_user(username='testuser', password='password')
+        
         tokens = get_tokens_for_user(self.user)
+        
         self.access_token = tokens['access']
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.access_token)
 
@@ -61,45 +61,54 @@ class ScheduleAPITestCase(TestCase):
             }
         }
 
-    # Tests for the authentication endpoints
     def test_signup_success(self):
-        self.client.credentials()  # No auth token required for signup
+        self.client.credentials()
+        
         signup_data = {
             "username": "newuser",
             "email": "newuser@example.com",
             "password": "newpassword123"
         }
+        
         response = self.client.post(reverse('signup'), signup_data, format='json')
+        
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertIn("access", response.data)
 
     def test_signup_existing_username(self):
         self.client.credentials()
+        
         signup_data = {
-            "username": "testuser",  # Already exists
+            "username": "testuser",
             "email": "newemail@example.com",
             "password": "newpassword123"
         }
+        
         response = self.client.post(reverse('signup'), signup_data, format='json')
+       
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("Username already exists", response.data["message"])
 
     def test_login_success(self):
-        self.client.credentials()  # No auth token required for login
+        self.client.credentials()
+        
         login_data = {
             "username": "testuser",
             "password": "password"
         }
+        
         response = self.client.post(reverse('token_obtain_pair'), login_data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn("access", response.data)
 
     def test_login_invalid_credentials(self):
         self.client.credentials()
+        
         login_data = {
             "username": "testuser",
             "password": "wrongpassword"
         }
+        
         response = self.client.post(reverse('token_obtain_pair'), login_data, format='json')
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
@@ -107,13 +116,15 @@ class ScheduleAPITestCase(TestCase):
         refresh_data = {
             "refresh": str(RefreshToken.for_user(self.user))
         }
+        
         response = self.client.post(reverse('token_refresh'), refresh_data, format='json')
+        
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn("access", response.data)
 
-    # Schedule tests
     def test_access_without_auth(self):
         self.client.credentials()
+        
         response = self.client.get(reverse('schedule-list'))
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
@@ -123,17 +134,20 @@ class ScheduleAPITestCase(TestCase):
 
     def test_create_schedule_success(self):
         response = self.client.post(reverse('schedule-list'), self.valid_schedule_data, format='json')
+        
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Schedule.objects.count(), 1)
 
     def test_get_all_schedules(self):
         Schedule.objects.create(schedule=self.valid_schedule_data['schedule'])
         response = self.client.get(reverse('schedule-list'))
+        
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 1)
 
     def test_update_schedule_success(self):
         schedule = Schedule.objects.create(schedule=self.valid_schedule_data['schedule'])
+        
         updated_data = {
             "schedule": {
                 "wednesday": [
@@ -141,6 +155,7 @@ class ScheduleAPITestCase(TestCase):
                 ]
             }
         }
+
         response = self.client.put(reverse('schedule-detail', args=[schedule.id]), updated_data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['schedule']['wednesday'][0]['start'], "10:00")
@@ -148,6 +163,7 @@ class ScheduleAPITestCase(TestCase):
     def test_delete_schedule_success(self):
         schedule = Schedule.objects.create(schedule=self.valid_schedule_data['schedule'])
         response = self.client.delete(reverse('schedule-detail', args=[schedule.id]))
+        
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(Schedule.objects.count(), 0)
 
@@ -158,6 +174,7 @@ class ScheduleAPITestCase(TestCase):
 
     def test_update_schedule_without_auth(self):
         schedule = Schedule.objects.create(schedule=self.valid_schedule_data['schedule'])
+        
         updated_data = {
             "schedule": {
                 "wednesday": [
@@ -165,6 +182,7 @@ class ScheduleAPITestCase(TestCase):
                 ]
             }
         }
+        
         self.client.credentials()
         response = self.client.put(reverse('schedule-detail', args=[schedule.id]), updated_data, format='json')
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
@@ -172,21 +190,25 @@ class ScheduleAPITestCase(TestCase):
     def test_delete_schedule_without_auth(self):
         schedule = Schedule.objects.create(schedule=self.valid_schedule_data['schedule'])
         self.client.credentials()
+        
         response = self.client.delete(reverse('schedule-detail', args=[schedule.id]))
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_create_schedule_invalid_data(self):
         response = self.client.post(reverse('schedule-list'), self.invalid_schedule_data, format='json')
+        
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("Each time slot must contain 'start', 'stop', and 'ids' fields.", response.data['schedule'][0])
 
     def test_create_schedule_invalid_day(self):
         response = self.client.post(reverse('schedule-list'), self.invalid_day_schedule_data, format='json')
+        
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("Invalid day", response.data['schedule'][0])
 
     def test_create_schedule_missing_ids(self):
         response = self.client.post(reverse('schedule-list'), self.missing_ids_schedule_data, format='json')
+        
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("Each time slot must contain 'start', 'stop', and 'ids' fields.", response.data['schedule'][0])
 
@@ -197,6 +219,7 @@ class ScheduleAPITestCase(TestCase):
                 {"start": "11:00", "stop": "12:00", "ids": [3, 4]}
             ]
         }
+        
         serializer = ScheduleSerializer(data={"schedule": valid_schedule})
         self.assertTrue(serializer.is_valid())
 
@@ -206,7 +229,9 @@ class ScheduleAPITestCase(TestCase):
                 {"stop": "10:00", "ids": [1, 2]}
             ]
         }
+        
         serializer = ScheduleSerializer(data={"schedule": invalid_schedule})
+        
         self.assertFalse(serializer.is_valid())
         self.assertIn("Each time slot must contain 'start', 'stop', and 'ids' fields.", str(serializer.errors))
 
@@ -216,6 +241,8 @@ class ScheduleAPITestCase(TestCase):
                 {"start": "08:00", "stop": "10:00", "ids": [1, 2]}
             ]
         }
+        
         serializer = ScheduleSerializer(data={"schedule": invalid_schedule})
+        
         self.assertFalse(serializer.is_valid())
         self.assertIn("Invalid day", str(serializer.errors))

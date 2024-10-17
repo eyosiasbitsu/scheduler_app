@@ -10,7 +10,7 @@ class ScheduleSerializer(serializers.ModelSerializer):
         fields = ["id", "schedule"]
 
     def validate_schedule(self, value):
-        # Ensure the schedule follows the expected format
+
         days_of_week = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
 
         for day, slots in value.items():
@@ -20,7 +20,5 @@ class ScheduleSerializer(serializers.ModelSerializer):
             for slot in slots:
                 if "start" not in slot or "stop" not in slot or "ids" not in slot:
                     raise serializers.ValidationError("Each time slot must contain 'start', 'stop', and 'ids' fields.")
-
-                # Additional validation: Check time format, etc., as needed.
 
         return value

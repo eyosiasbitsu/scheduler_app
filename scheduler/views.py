@@ -6,13 +6,11 @@ from rest_framework.permissions import IsAuthenticated
 from .models import Schedule
 from .serializers import ScheduleSerializer
 
-
 class ScheduleViewSet(viewsets.ModelViewSet):
     queryset = Schedule.objects.all()
     serializer_class = ScheduleSerializer
-    permission_classes = [IsAuthenticated]  # Require authentication for all CRUD operations
+    permission_classes = [IsAuthenticated] 
 
-    # CREATE Schedule with Swagger documentation
     @swagger_auto_schema(
         operation_description="Create a new schedule with time slots for each day of the week.",
         request_body=openapi.Schema(
@@ -51,10 +49,10 @@ class ScheduleViewSet(viewsets.ModelViewSet):
             ),
         },
     )
+
     def create(self, request, *args, **kwargs):
         return super().create(request, *args, **kwargs)
 
-    # LIST all schedules
     @swagger_auto_schema(
         operation_description="Get all schedules, with details for each day of the week.",
         responses={
@@ -76,10 +74,10 @@ class ScheduleViewSet(viewsets.ModelViewSet):
             )
         },
     )
+
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
 
-    # RETRIEVE a specific schedule
     @swagger_auto_schema(
         operation_description="Retrieve a specific schedule by its ID.",
         responses={
@@ -102,10 +100,10 @@ class ScheduleViewSet(viewsets.ModelViewSet):
             ),
         },
     )
+
     def retrieve(self, request, *args, **kwargs):
         return super().retrieve(request, *args, **kwargs)
 
-    # UPDATE a specific schedule
     @swagger_auto_schema(
         operation_description="Update a specific schedule by its ID.",
         request_body=ScheduleSerializer,
@@ -131,7 +129,6 @@ class ScheduleViewSet(viewsets.ModelViewSet):
     def update(self, request, *args, **kwargs):
         return super().update(request, *args, **kwargs)
 
-    # DELETE a specific schedule
     @swagger_auto_schema(
         operation_description="Delete a specific schedule by its ID.",
         responses={
@@ -141,5 +138,6 @@ class ScheduleViewSet(viewsets.ModelViewSet):
             ),
         },
     )
+    
     def destroy(self, request, *args, **kwargs):
         return super().destroy(request, *args, **kwargs)
