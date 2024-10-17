@@ -1,0 +1,53 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: scheduler-db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=123456789
+      - POSTGRES_DB=scheduler
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U root"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 3s
+    ports:
+      - "5432:5432"
+
+  app:
+    build:
+      context: .
+      args:
+        POETRY_INSTALL_ARGS: "--no-root"
+    container_name: scheduler-app
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+
+    command: python manage.py runserver 0.0.0.0:8000
+
+  test:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    container_name: scheduler-app-test
+    environment:
+      - DEBUG=0
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - .:/app:cached
+    command: ["pytest", "--maxfail=1", "--disable-warnings"]
+
+volumes:
+  postgres_data:
