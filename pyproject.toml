@@ -1,0 +1,138 @@
+[tool.poetry]
+name = "scheduler-app"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+packages = []
+authors = ["fitsum"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = ">=3.12.0,<4.0"
+django = "^5.1.2"
+ruff = "^0.6.9"
+drf-yasg = "^1.21.7"
+djangorestframework-simplejwt = "^5.3.1"
+setuptools = "^75.2.0"
+gunicorn = "23.0.0"
+psycopg2-binary="2.9.10"
+dj-database-url = "^2.2.0"
+
+
+[tool.poetry.group.test.dependencies]
+pytest = "8.2.2"
+pytest-asyncio = "0.23.7"
+coverage = "7.5.0"
+pytest-mock = "3.13.0"
+
+
+
+[tool.poetry.group.dev.dependencies]
+pre-commit = "3.7.1"
+alembic = "1.13.2"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 120
+include = '\.pyi?$'
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+
+
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+env_files = [".env.example"]
+testpaths = ["tests/unit"]
+addopts = "-ra --tb=auto --disable-warnings --log-level=CRITICAL"
+
+
+
+[tool.codespell]
+ignore-words-list = ["assertIn"]
+
+
+
+[tool.ruff]
+lint.select = [
+    "A", # flake8-builtins
+    "B", # flake8-bugbear
+    "BLE", # flake8-blind-except
+    "C4", # flake8-comprehensions
+    "C90", # mccabe
+    "D", # pydocstyle
+    "DJ", # flake8-django
+    "DTZ", # flake8-datetimez
+    "E", # pycodestyle errors
+    "ERA", # eradicate
+    "EXE", # flake8-executable
+    "F", # pyflakes
+    "G", # flake8-logging-format
+    "I", # isort
+    "ICN", # flake8-import-conventions
+    "ISC", # flake8-implicit-str-concat
+    "N", # pep8-naming
+    "PIE", # flake8-pie
+    "PLC", # pylint - convention
+    "PLE", # pylint - error
+    "PLW", # pylint - warning
+    "PTH", # flake8-use-pathlib
+    "Q", # flake8-quotes
+    "RET", # flake8-return
+    "RUF", # Ruff-specific rules
+    "S", # flake8-bandit
+    "SIM", # flake8-simplify
+    "T10", # flake8-debugger
+    "T20", # flake8-print
+    "TCH", # flake8-type-checking
+    "TID", # flake8-tidy-imports
+    "UP", # pyupgrade
+    "W", # pycodestyle - warning
+    "YTT", # flake8-2020
+]
+lint.ignore = [
+    "E501", # pycodestyle line too long, handled by black
+    "D100", # pydocstyle - missing docstring in public module
+    "D101", # pydocstyle - missing docstring in public class
+    "D102", # pydocstyle - missing docstring in public method
+    "D103", # pydocstyle - missing docstring in public function
+    "D104", # pydocstyle - missing docstring in public package
+    "D105", # pydocstyle - missing docstring in magic method
+    "D106", # pydocstyle - missing docstring in public nested class
+    "D107", # pydocstyle - missing docstring in __init__
+    "D202", # pydocstyle - no blank lines allowed after function docstring
+    "D205", # pydocstyle - 1 blank line required between summary line and description
+    "D415", # pydocstyle - first line should end with a period, question mark, or exclamation point
+    "A003", # flake8-builtins - class attribute {name} is shadowing a python builtin
+    "B010", # flake8-bugbear - do not call setattr with a constant attribute value
+    "RUF012", # Ruff-specific rule
+    "S101", # flake8-bandit - use of assert
+]
+unsafe-fixes = true
+line-length = 120
+src = ["app", "tests"]
+target-version = "py312"
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.isort]
+known-first-party = ["app", "tests"]
+
+[tool.ruff.lint.pep8-naming]
+classmethod-decorators = [
+    "classmethod",
+    "sqlalchemy.orm.declared_attr.directive",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"examples/tests/**/*.*" = ["S101"]
+"app/lib/dependencies.py" = ["B008"]
+"tests/**/*.*" = ["S101", "DTZ"]
+

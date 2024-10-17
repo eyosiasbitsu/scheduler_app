@@ -1,0 +1,45 @@
+.
+├── Dockerfile
+├── Dockerfile.prod
+├── Dockerfile.test
+├── README.md
+├── api_v1
+│   ├── __init__.py
+│   └── urls.py
+├── auth_api
+│   ├── __init__.py
+│   ├── admin.py
+│   ├── apps.py
+│   ├── migrations
+│   │   └── __init__.py
+│   ├── models.py
+│   ├── serializers.py
+│   ├── tests.py
+│   ├── urls.py
+│   └── views.py
+├── db.sqlite3
+├── docker-compose.yaml
+├── folder_structure.txt
+├── manage.py
+├── mypy.ini
+├── poetry.lock
+├── poetry.toml
+├── pyproject.toml
+├── scheduler
+│   ├── __init__.py
+│   ├── admin.py
+│   ├── apps.py
+│   ├── migrations
+│   │   └── __init__.py
+│   ├── models.py
+│   ├── tests.py
+│   ├── urls.py
+│   └── views.py
+└── scheduler_app
+    ├── __init__.py
+    ├── asgi.py
+    ├── settings.py
+    ├── urls.py
+    └── wsgi.py
+
+7 directories, 36 files
