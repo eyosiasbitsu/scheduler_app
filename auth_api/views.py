@@ -6,9 +6,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
-
 from .serializers import SignupSerializer
-
 
 class SignupView(generics.CreateAPIView):
     serializer_class = SignupSerializer
@@ -32,6 +30,7 @@ class SignupView(generics.CreateAPIView):
         },
         security=[],
     )
+    
     def create(self, request: Request) -> Response:
         serializer = self.get_serializer(data=request.data)
 
