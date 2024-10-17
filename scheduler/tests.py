@@ -11,6 +11,7 @@ from .models import Schedule
 from .serializers import ScheduleSerializer
 
 
+# Helper function to create JWT tokens
 def get_tokens_for_user(user: User) -> dict[str, Any]:
     refresh = RefreshToken.for_user(user)
     return {
@@ -43,8 +44,9 @@ class ScheduleAPITestCase(TestCase):
 
         self.missing_ids_schedule_data = {"schedule": {"monday": [{"start": "08:00", "stop": "10:00"}]}}
 
+    # Tests for the authentication endpoints
     def test_signup_success(self):
-        self.client.credentials()
+        self.client.credentials()  # No auth token required for signup
         signup_data = {"username": "newuser", "email": "newuser@example.com", "password": "newpassword123"}
         response = self.client.post(reverse("signup"), signup_data, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -53,7 +55,7 @@ class ScheduleAPITestCase(TestCase):
     def test_signup_existing_username(self):
         self.client.credentials()
         signup_data = {
-            "username": "testuser",
+            "username": "testuser",  # Already exists
             "email": "newemail@example.com",
             "password": "newpassword123",
         }
@@ -62,7 +64,7 @@ class ScheduleAPITestCase(TestCase):
         self.assertIn("Username already exists", response.data["message"])
 
     def test_login_success(self):
-        self.client.credentials()
+        self.client.credentials()  # No auth token required for login
         login_data = {"username": "testuser", "password": "password"}
         response = self.client.post(reverse("token_obtain_pair"), login_data, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)

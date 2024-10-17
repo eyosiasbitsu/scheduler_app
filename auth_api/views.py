@@ -12,7 +12,7 @@ from .serializers import SignupSerializer
 
 class SignupView(generics.CreateAPIView):
     serializer_class = SignupSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [AllowAny]  # Publicly accessible
 
     @swagger_auto_schema(  # type: ignore
         operation_description="Sign up a new user",
@@ -30,7 +30,7 @@ class SignupView(generics.CreateAPIView):
             ),
             400: openapi.Response(description="Bad request, username or email already exists"),
         },
-        security=[],
+        security=[],  # This removes the protected lock icon from Swagger for signup
     )
     def create(self, request: Request) -> Response:
         serializer = self.get_serializer(data=request.data)
