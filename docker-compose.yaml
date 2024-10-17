@@ -42,12 +42,11 @@ services:
     container_name: scheduler-app-test
     environment:
       - DEBUG=0
-    depends_on:
-      db:
-        condition: service_healthy
     volumes:
       - .:/app:cached
-    command: ["pytest", "--maxfail=1", "--disable-warnings"]
+    command: python manage.py test --failfast
+
+
 
 volumes:
   postgres_data:

@@ -1,11 +1,12 @@
 from django.contrib.auth.models import User
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework import generics, status
 from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
-from drf_yasg.utils import swagger_auto_schema
-from drf_yasg import openapi
+
 from .serializers import SignupSerializer
 
 class SignupView(generics.CreateAPIView):
@@ -23,19 +24,18 @@ class SignupView(generics.CreateAPIView):
                         "message": openapi.Schema(type=openapi.TYPE_STRING),
                         "access": openapi.Schema(type=openapi.TYPE_STRING),
                         "refresh": openapi.Schema(type=openapi.TYPE_STRING),
-                    }
-                )
+                    },
+                ),
             ),
-            400: openapi.Response(
-                description="Bad request, username or email already exists"
-            )
+            400: openapi.Response(description="Bad request, username or email already exists"),
         },
-        security=[]
+        security=[],
     )
-    
     def create(self, request: Request) -> Response:
         serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         username = serializer.validated_data["username"]
         email = serializer.validated_data["email"]
