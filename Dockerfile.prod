@@ -34,7 +34,5 @@ RUN adduser --system --uid 1001 "app-user"
 
 USER "app-user"
 
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "scheduler_app.wsgi:application"]
-
-
-
+# CMD ["gunicorn", "--bind", "0.0.0.0:8000", "scheduler_app.wsgi:application"]
+CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
