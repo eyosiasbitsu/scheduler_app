@@ -1,6 +1,7 @@
 from django.urls import path
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+
 from . import views
 
 token_obtain_pair_view = swagger_auto_schema(method="post", security=[])(TokenObtainPairView.as_view())
