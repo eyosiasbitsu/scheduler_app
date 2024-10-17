@@ -1,9 +1,9 @@
 from django.contrib import admin
+from django.shortcuts import redirect
 from django.urls import include, path
 from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 from rest_framework import permissions
-from django.shortcuts import redirect
 
 # Swagger schema view configuration
 schema_view = get_schema_view(
@@ -19,9 +19,11 @@ schema_view = get_schema_view(
     permission_classes=(permissions.AllowAny,),
 )
 
+
 # Redirect root URL to Swagger UI
 def redirect_to_swagger(request):
     return redirect("/swagger/")
+
 
 urlpatterns = [
     path("admin/", admin.site.urls),

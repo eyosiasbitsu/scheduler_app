@@ -10,12 +10,14 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from .models import Schedule
 from .serializers import ScheduleSerializer
 
+
 def get_tokens_for_user(user: User) -> dict[str, Any]:
     refresh = RefreshToken.for_user(user)
     return {
         "refresh": str(refresh),
         "access": str(refresh.access_token),
     }
+
 
 class ScheduleAPITestCase(TestCase):
     def setUp(self):

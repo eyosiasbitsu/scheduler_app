@@ -9,11 +9,12 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from .serializers import SignupSerializer
 
+
 class SignupView(generics.CreateAPIView):
     serializer_class = SignupSerializer
     permission_classes = [AllowAny]
 
-    @swagger_auto_schema(
+    @swagger_auto_schema(  # type: ignore
         operation_description="Sign up a new user",
         responses={
             201: openapi.Response(

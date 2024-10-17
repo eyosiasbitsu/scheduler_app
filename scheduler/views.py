@@ -6,10 +6,11 @@ from rest_framework.permissions import IsAuthenticated
 from .models import Schedule
 from .serializers import ScheduleSerializer
 
+
 class ScheduleViewSet(viewsets.ModelViewSet):
     queryset = Schedule.objects.all()
     serializer_class = ScheduleSerializer
-    permission_classes = [IsAuthenticated] 
+    permission_classes = [IsAuthenticated]
 
     @swagger_auto_schema(
         operation_description="Create a new schedule with time slots for each day of the week.",
@@ -49,7 +50,6 @@ class ScheduleViewSet(viewsets.ModelViewSet):
             ),
         },
     )
-
     def create(self, request, *args, **kwargs):
         return super().create(request, *args, **kwargs)
 
@@ -74,7 +74,6 @@ class ScheduleViewSet(viewsets.ModelViewSet):
             )
         },
     )
-
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
 
@@ -100,7 +99,6 @@ class ScheduleViewSet(viewsets.ModelViewSet):
             ),
         },
     )
-
     def retrieve(self, request, *args, **kwargs):
         return super().retrieve(request, *args, **kwargs)
 
@@ -138,6 +136,5 @@ class ScheduleViewSet(viewsets.ModelViewSet):
             ),
         },
     )
-    
     def destroy(self, request, *args, **kwargs):
         return super().destroy(request, *args, **kwargs)
