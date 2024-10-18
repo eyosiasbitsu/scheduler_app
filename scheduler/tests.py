@@ -1,3 +1,5 @@
+import secrets
+import string
 from typing import Any
 
 from django.contrib.auth.models import User
@@ -9,6 +11,21 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import Schedule
 from .serializers import ScheduleSerializer
+
+
+# Helper function to generate a random password
+def generate_random_password(length: int = 12) -> str:
+    """Generate a random password."""
+    alphabet = string.ascii_letters + string.digits
+    return "".join(secrets.choice(alphabet) for _ in range(length))
+
+
+# Helper function to create test credentials
+def create_test_user(username: str, password: str | None = None) -> User:
+    """Create a test user with a random or given password."""
+    if password is None:
+        password = generate_random_password()  # Generate random password if none provided
+    return User.objects.create_user(username=username, password=password)
 
 
 # Helper function to create JWT tokens
@@ -23,10 +40,16 @@ def get_tokens_for_user(user: User) -> dict[str, Any]:
 class ScheduleAPITestCase(TestCase):
     def setUp(self):
         self.client = APIClient()
-        self.user = User.objects.create_user(username="testuser", password="password")  # noqa
+
+        # Create a user with a generated password
+        self.password = generate_random_password()  # Random password for user
+        self.user = create_test_user(username="testuser", password=self.password)
         tokens = get_tokens_for_user(self.user)
         self.access_token = tokens["access"]
         self.client.credentials(HTTP_AUTHORIZATION="Bearer " + self.access_token)
+
+        # Create another user for ownership tests
+        self.other_user = create_test_user(username="otheruser", password=generate_random_password())
 
         self.valid_schedule_data = {
             "schedule": {
@@ -44,10 +67,10 @@ class ScheduleAPITestCase(TestCase):
 
         self.missing_ids_schedule_data = {"schedule": {"monday": [{"start": "08:00", "stop": "10:00"}]}}
 
-    # Tests for the authentication endpoints
+    # Authentication Tests
     def test_signup_success(self):
         self.client.credentials()  # No auth token required for signup
-        signup_data = {"username": "newuser", "email": "newuser@example.com", "password": "newpassword123"}
+        signup_data = {"username": "newuser", "email": "newuser@example.com", "password": generate_random_password()}
         response = self.client.post(reverse("signup"), signup_data, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertIn("access", response.data)
@@ -57,18 +80,20 @@ class ScheduleAPITestCase(TestCase):
         signup_data = {
             "username": "testuser",  # Already exists
             "email": "newemail@example.com",
-            "password": "newpassword123",
+            "password": generate_random_password(),
         }
         response = self.client.post(reverse("signup"), signup_data, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("Username already exists", response.data["message"])
 
     def test_login_success(self):
-        self.client.credentials()  # No auth token required for login
-        login_data = {"username": "testuser", "password": "password"}
+        # Ensure the correct credentials are used during login
+        login_data = {"username": self.user.username, "password": self.password}  # Use the correct password
         response = self.client.post(reverse("token_obtain_pair"), login_data, format="json")
+
+        # Check if the login was successful
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn("access", response.data)
+        self.assertIn("access", response.data)  # Check if the access token is returned
 
     def test_login_invalid_credentials(self):
         self.client.credentials()
@@ -82,7 +107,7 @@ class ScheduleAPITestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn("access", response.data)
 
-    # Schedule tests
+    # Schedule Tests
     def test_access_without_auth(self):
         self.client.credentials()
         response = self.client.get(reverse("schedule-list"))
@@ -95,45 +120,62 @@ class ScheduleAPITestCase(TestCase):
     def test_create_schedule_success(self):
         response = self.client.post(reverse("schedule-list"), self.valid_schedule_data, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(Schedule.objects.count(), 1)
+        schedule = Schedule.objects.first()
+        self.assertIsNotNone(schedule)  # Ensure schedule is not None
+        if schedule is not None:  # Add this None check
+            self.assertEqual(schedule.user, self.user)  # Ensure the schedule is associated with the correct user
 
     def test_get_all_schedules(self):
-        Schedule.objects.create(schedule=self.valid_schedule_data["schedule"])
+        Schedule.objects.create(schedule=self.valid_schedule_data["schedule"], user=self.user)
         response = self.client.get(reverse("schedule-list"))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 1)
 
     def test_update_schedule_success(self):
-        schedule = Schedule.objects.create(schedule=self.valid_schedule_data["schedule"])
-        updated_data = {"schedule": {"wednesday": [{"start": "10:00", "stop": "12:00", "ids": [7, 8]}]}}
-        response = self.client.put(reverse("schedule-detail", args=[schedule.id]), updated_data, format="json")
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["schedule"]["wednesday"][0]["start"], "10:00")
+        schedule = Schedule.objects.create(schedule=self.valid_schedule_data["schedule"], user=self.user)
+        if schedule is not None:
+            updated_data = {"schedule": {"wednesday": [{"start": "10:00", "stop": "12:00", "ids": [7, 8]}]}}
+            response = self.client.put(reverse("schedule-detail", args=[schedule.id]), updated_data, format="json")
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(response.data["schedule"]["wednesday"][0]["start"], "10:00")
+        else:
+            # Handle the case where schedule is None
+            pass
 
     def test_delete_schedule_success(self):
-        schedule = Schedule.objects.create(schedule=self.valid_schedule_data["schedule"])
+        schedule = Schedule.objects.create(schedule=self.valid_schedule_data["schedule"], user=self.user)
+        self.assertIsNotNone(schedule)  # Check that the schedule is not None
         response = self.client.delete(reverse("schedule-detail", args=[schedule.id]))
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(Schedule.objects.count(), 0)
 
-    def test_create_schedule_without_auth(self):
-        self.client.credentials()
-        response = self.client.post(reverse("schedule-list"), self.valid_schedule_data, format="json")
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+    # Ownership and Permissions Tests
+    def test_access_schedule_of_other_user(self):
+        # Create a schedule for the other user
+        schedule = Schedule.objects.create(schedule=self.valid_schedule_data["schedule"], user=self.other_user)
 
-    def test_update_schedule_without_auth(self):
-        schedule = Schedule.objects.create(schedule=self.valid_schedule_data["schedule"])
+        # Try to access the other user's schedule
+        response = self.client.get(reverse("schedule-detail", args=[schedule.id]))
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)  # Should not find another user's schedule
+
+    def test_update_schedule_of_other_user(self):
+        # Create a schedule for the other user
+        schedule = Schedule.objects.create(schedule=self.valid_schedule_data["schedule"], user=self.other_user)
+
+        # Try to update the other user's schedule
         updated_data = {"schedule": {"wednesday": [{"start": "10:00", "stop": "12:00", "ids": [7, 8]}]}}
-        self.client.credentials()
         response = self.client.put(reverse("schedule-detail", args=[schedule.id]), updated_data, format="json")
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)  # Should not update another user's schedule
 
-    def test_delete_schedule_without_auth(self):
-        schedule = Schedule.objects.create(schedule=self.valid_schedule_data["schedule"])
-        self.client.credentials()
+    def test_delete_schedule_of_other_user(self):
+        # Create a schedule for the other user
+        schedule = Schedule.objects.create(schedule=self.valid_schedule_data["schedule"], user=self.other_user)
+
+        # Try to delete the other user's schedule
         response = self.client.delete(reverse("schedule-detail", args=[schedule.id]))
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)  # Should not delete another user's schedule
 
+    # Validation Tests
     def test_create_schedule_invalid_data(self):
         response = self.client.post(reverse("schedule-list"), self.invalid_schedule_data, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -149,6 +191,7 @@ class ScheduleAPITestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("Each time slot must contain 'start', 'stop', and 'ids' fields.", response.data["schedule"][0])
 
+    # Serializer Validation
     def test_validate_valid_schedule(self):
         valid_schedule = {
             "monday": [

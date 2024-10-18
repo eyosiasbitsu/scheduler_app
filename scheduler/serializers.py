@@ -4,13 +4,14 @@ from .models import Schedule
 
 
 class ScheduleSerializer(serializers.ModelSerializer):
+    user = serializers.ReadOnlyField(source="user.username")  # Ensure that the user field is read-only
 
     class Meta:
         model = Schedule
-        fields = ["id", "schedule"]
+        fields = ["id", "schedule", "user"]  # Include the user field
 
     def validate_schedule(self, value):
-        # Ensure the schedule follows the expected format
+        # Same validation as before
         days_of_week = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
 
         for day, slots in value.items():
@@ -20,7 +21,5 @@ class ScheduleSerializer(serializers.ModelSerializer):
             for slot in slots:
                 if "start" not in slot or "stop" not in slot or "ids" not in slot:
                     raise serializers.ValidationError("Each time slot must contain 'start', 'stop', and 'ids' fields.")
-
-                # Additional validation: Check time format, etc., as needed.
 
         return value

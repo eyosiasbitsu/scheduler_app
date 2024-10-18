@@ -4,13 +4,22 @@ from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 
 from .models import Schedule
+from .permissions import IsOwner  # Import the custom permission
 from .serializers import ScheduleSerializer
 
 
 class ScheduleViewSet(viewsets.ModelViewSet):
     queryset = Schedule.objects.all()
     serializer_class = ScheduleSerializer
-    permission_classes = [IsAuthenticated]  # Require authentication for all CRUD operations
+    permission_classes = [IsAuthenticated, IsOwner]  # Require authentication and ownership
+
+    def get_queryset(self):
+        # Return only schedules that belong to the authenticated user
+        return Schedule.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        # Automatically assign the logged-in user as the owner when creating a schedule
+        serializer.save(user=self.request.user)
 
     # CREATE Schedule with Swagger documentation
     @swagger_auto_schema(
@@ -70,6 +79,7 @@ class ScheduleViewSet(viewsets.ModelViewSet):
                                     {"start": "10:30", "stop": "12:00", "ids": [3, 4]},
                                 ]
                             },
+                            "user": "username",  # Include user in the example response if you like
                         }
                     ]
                 },
@@ -94,11 +104,13 @@ class ScheduleViewSet(viewsets.ModelViewSet):
                                 {"start": "10:30", "stop": "12:00", "ids": [3, 4]},
                             ]
                         },
+                        "user": "username",
                     }
                 },
             ),
             404: openapi.Response(
-                description="Schedule not found", examples={"application/json": {"detail": "Not found."}}
+                description="Schedule not found",
+                examples={"application/json": {"detail": "Not found."}},
             ),
         },
     )
@@ -116,6 +128,7 @@ class ScheduleViewSet(viewsets.ModelViewSet):
                     "application/json": {
                         "id": 1,
                         "schedule": {"tuesday": [{"start": "09:00", "stop": "11:00", "ids": [5, 6]}]},
+                        "user": "username",
                     }
                 },
             ),
@@ -124,7 +137,8 @@ class ScheduleViewSet(viewsets.ModelViewSet):
                 examples={"application/json": {"schedule": {"monday": ["Missing 'start' field"]}}},
             ),
             404: openapi.Response(
-                description="Schedule not found", examples={"application/json": {"detail": "Not found."}}
+                description="Schedule not found",
+                examples={"application/json": {"detail": "Not found."}},
             ),
         },
     )
@@ -135,9 +149,13 @@ class ScheduleViewSet(viewsets.ModelViewSet):
     @swagger_auto_schema(
         operation_description="Delete a specific schedule by its ID.",
         responses={
-            204: openapi.Response(description="Schedule deleted successfully", examples={"application/json": None}),
+            204: openapi.Response(
+                description="Schedule deleted successfully",
+                examples={"application/json": None},
+            ),
             404: openapi.Response(
-                description="Schedule not found", examples={"application/json": {"detail": "Not found."}}
+                description="Schedule not found",
+                examples={"application/json": {"detail": "Not found."}},
             ),
         },
     )
