@@ -58,7 +58,7 @@ ENVIRONMENT = EnvironmentOption.get(os.environ.get("ENVIRONMENT", "TESTING"))
 SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-ptj_a$2tl7at!_uh=m*j@3uk73tf)p!#hvc@ejztula$8jdt(3")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = int(os.environ.get("DEBUG", 1))  # Adjust based on environment
+DEBUG = 1
 
 
 DATABASE_URL = "sqlite:///test.db3"
@@ -70,7 +70,7 @@ if ENVIRONMENT == EnvironmentOption.PRODUCTION:
     DATABASE_URL = os.environ.get("PRODUCTION_DATABASE_URL", DATABASE_URL)
 
 
-ALLOWED_HOSTS = ["*"]  # Or restrict to specific domains in production
+ALLOWED_HOSTS: list[Any] = ["*"]
 
 
 # Application definition
@@ -124,7 +124,7 @@ SWAGGER_SETTINGS = {
     "SECURITY_DEFINITIONS": {
         "Bearer": {
             "type": "apiKey",
-            "tokenUrl": "https://scheduler-app-lqfa.onrender.com/api_v1/auth/token/",  # Updated to HTTPS
+            "tokenUrl": "http://127.0.0.1:8000/api_v1/auth/token/",
             "flow": "accessCode",
             "name": "Authorization",
             "in": "header",
@@ -133,7 +133,10 @@ SWAGGER_SETTINGS = {
     },
     "USE_SESSION_AUTH": False,
     "SECURITY_REQUIREMENTS": [{"Bearer": []}],
+    "SCHEMES": ["https", "http"],
 }
+
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": ("rest_framework_simplejwt.authentication.JWTAuthentication",),
@@ -146,7 +149,7 @@ SIMPLE_JWT = {
 
 
 MIDDLEWARE = [
-    "corsheaders.middleware.CorsMiddleware",  # Ensure CORS middleware is first
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
