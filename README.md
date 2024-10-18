@@ -2,7 +2,7 @@
 
 Welcome to the **Scheduler App**! This project is built to manage and oversee scheduling tasks easily and effectively. It allows users to create, manage, update, and delete schedules with a secure and intuitive interface.
 
-**Live Demo:** [Scheduler App on Render](https://scheduler-app-lqfa.onrender.com/)
+**Live Demo:** [Scheduler App on Render](https://scheduler-app-lip5.onrender.com/swagger/)
 
 ---
 
@@ -74,79 +74,6 @@ Here are the key API endpoints available in the **Scheduler App**:
 
 For a full list of API endpoints, refer to the **Swagger Documentation**.
 
----
-
-## Screenshots
-
-Here are some screenshots from the **Swagger UI** showcasing the available API endpoints:
-
-![Swagger UI Screenshot](https://user-images.githubusercontent.com/your-image-link)
-
----
-
-## Setup and Installation
-
-Follow the steps below to set up and run the project locally:
-
-1. **Clone the repository:**
-
-   ```bash
-   git clone https://github.com/eyosiasbitsu/scheduler_app.git
-   ```
-
-2. **Navigate into the project directory:**
-
-   ```bash
-   cd scheduler-app
-   ```
-
-3. **Set up a virtual environment:**
-
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows use `venv\Scripts\activate`
-   ```
-
-4. **Install the required dependencies:**
-
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-5. **Apply migrations:**
-
-   ```bash
-   python manage.py migrate
-   ```
-
-6. **Run the development server:**
-
-   ```bash
-   python manage.py runserver
-   ```
-
-7. **Access the app:**
-
-   Open your browser and visit [http://127.0.0.1:8000/](http://127.0.0.1:8000/) to access the app locally.
-
-### Docker Setup
-
-To run the project using Docker, follow these steps:
-
-1. **Build and start the Docker containers:**
-
-   ```bash
-   docker-compose up --build
-   ```
-
-2. **Run the tests from within Docker:**
-
-   ```bash
-   docker-compose run web pytest
-   ```
-
----
-
 ## Roadmap
 
 - Pre-commit configuration for code quality enforcement (using ruff).
@@ -186,29 +113,8 @@ Contributions are welcome and greatly appreciated! To contribute:
 
 ---
 
-## License
-
-Distributed under the MIT License. See `LICENSE` for more information.
-
----
-
 ## Contact
 
-Project Link: [https://github.com/your-username/scheduler-app](https://github.com/your-username/scheduler-app)
+Project Link: [https://github.com/eyosiasbitsu/scheduler_app](https://github.com/eyosiasbitsu/scheduler_app)
 
----
-
-## Acknowledgments
-
-- Django
-- Docker
-- Swagger
-- Render
-
----
-
-### Adjustments:
-- Replace the placeholder `https://github.com/your-username/scheduler-app` with your actual GitHub project link.
-- Replace the placeholder image links and badge URLs with actual links, if necessary.
-
-This README is designed to be easily copied and pasted directly into your project repository! Let me know if you need any further customizations!
+Let me know if you need any further customizations!
